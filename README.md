@@ -65,13 +65,9 @@ Unit: <v.1> Pa
 
 ### Rain values 
 Hour: Command recognition: name="rainofhourly"\ivalue="\i\v  
-Unit: <v.1> mm
 Day: Command recognition: name="rainofdaily"\ivalue="\i\v  
-Unit: <v.1> mm
 Week: Command recognition: name="rainofweekly"\ivalue="\i\v  
-Unit: <v.1> mm
 Month: Command recognition: name="rainofmonthly"\ivalue="\i\v  
-Unit: <v.1> mm
 Year: Command recognition: name="rainofyearly"\ivalue="\i\v  
 Unit: <v.1> mm
 
