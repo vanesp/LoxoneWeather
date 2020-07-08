@@ -13,11 +13,13 @@ The script is run once every 2 minutes using crontab, and the measurement values
 
 I'm enclosing my code as an example in scrape_weather.php
 
-# Update to later version of Ambient software
+### Update to later version of Ambient software
 I started encountering errors with the device, and the webpage would become slow or inaccessible. I upgraded the software (see versions here https://www.ambientweather.com/observerip.html) however this did not resolve the problem.
 
 It was found that the Observerip module has difficulty when multiple clients access the data simultaneously. Because that happens in my situation (the raspberry Pi with Domoticz scrapes it once every 10 minutes, and Loxone scrapes it every 6 minutes) I have now modified the script so that a copy of the livedata.htm file is stripped of the Javascript and then written to the /var/www/html directory of the raspberry Pi. It can then be accessed by Loxone from  http://ip-of-raspberry/livedata.htm.
 
-# Loxone
+## Loxone
 Loxone is set up with virtual inputs and the correct scrape commands to retrieve the values from the scraped html page.
 
+### Wind direction
+Command recognition: 
