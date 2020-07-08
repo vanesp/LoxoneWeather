@@ -23,6 +23,8 @@ Loxone is set up with virtual inputs and the correct scrape commands to retrieve
 
 ![Virtual set-up](https://github.com/vanesp/LoxoneWeather/blob/master/virtual_weather.png)
 
+## Weather page
+
 ![Weather page](https://github.com/vanesp/LoxoneWeather/blob/master/weather.png)
 
 ### Wind direction
