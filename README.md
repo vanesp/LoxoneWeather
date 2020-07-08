@@ -22,4 +22,44 @@ It was found that the Observerip module has difficulty when multiple clients acc
 Loxone is set up with virtual inputs and the correct scrape commands to retrieve the values from the scraped html page.
 
 ### Wind direction
-Command recognition: 
+Command recognition: name="windir"\ivalue="\i\v
+Unit: <v.1>°
+
+### Wind speed
+Command recognition: name="avgwind"\ivalue="\i\v
+Unit: <v.1> km/h
+
+### Wind gusts
+Command recognition: name="gustspeed"\ivalue="\i\v
+Unit: <v.1> km/h
+
+### Temperature Outside
+Command recognition: name="outTemp"\ivalue="\i\v
+Unit: <v.1>°
+
+### Temperature Inside
+Command recognition: name="inTemp"\ivalue="\i\v
+Unit: <v.1>°
+
+### Humidity Outside
+Command recognition: name="outHumi"\ivalue="\i\v
+Unit: <v.1> %
+
+### Humidity Inside
+Command recognition: name="inHumi"\ivalue="\i\v
+Unit: <v.1> %
+
+### Solar Radiation
+Command recognition: name="solarrad"\ivalue="\i\v
+Unit: <v.1> lx
+
+### Absolute Pressure
+Command recognition: name="AbsPres"\ivalue="\i\v
+Unit: <v.1> Pa
+
+### Relative Pressure 
+Command recognition: name="RelPres"\ivalue="\i\v
+Unit: <v.1> Pa
+
+
+
