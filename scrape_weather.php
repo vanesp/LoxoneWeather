@@ -12,7 +12,7 @@ define ("PRODUCTION", "True");
 // comment out to go to test mode
 
 // If Curl waits forever for data (as can happen on a weather statiom) just time out in php after x secs
-set_time_limit(15);
+set_time_limit(30);
 
 // array with sensor values for Domoticz.
 // 0 means: do not send
@@ -31,6 +31,7 @@ $idxlookup = array (
 	'gustspeed' => 0,
 	'dailygust' => 0,
 	'uvi' => 10,
+	'uv' => 0,
 	'solarrad' => 11,
 	'rainofhourly' => 8,
 	'rainofdaily' => 0,
@@ -38,6 +39,7 @@ $idxlookup = array (
 	'rainofmonthly' => 0,
 	'rainofyearly' => 0,
 	'eventrain' => 0,
+	'pm25' => 0,
 	'pm25out' => 0,
 	'pm25in' => 0,
 	'CurrTime' => 0,
@@ -48,6 +50,13 @@ $idxlookup = array (
 	'Cancel' => 0,
 	'rain_Default' => 0,
 );
+
+// based on original work from the PHP Laravel framework
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        return $needle !== '' && strpos($haystack, $needle) !== false;
+    }
+}
 
 if (defined('PRODUCTION')) {
 	// create curl resource to retrieve the data from the weatherstation
@@ -61,7 +70,7 @@ if (defined('PRODUCTION')) {
 
 	// don't wait forever for the output but don't generate a name server alarm
 	curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
-	curl_setopt($ch, CURLOPT_TIMEOUT, 10);	// wait a max of x seconds
+	curl_setopt($ch, CURLOPT_TIMEOUT, 15);	// wait a max of x seconds
 
 	// $output contains the output string
 	$html = curl_exec($ch);
@@ -96,10 +105,10 @@ if(!empty($html)){ //if any html is actually returned
     $ambient_xpath = new DOMXPath($ambient_doc);
 
     //get all the input fields which represent data from the weather station
-	// the name and the value are stored in attributes of the input field
-	// e.g:
-	//    <td bgcolor="#EDEFEF"><div class="item_1">Indoor Temperature</div></td>
-	//    <td bgcolor="#EDEFEF"><input name="inTemp" disabled="disabled" type="text" class="item_2" style="WIDTH: 80px" value="21.5" maxlength="5" /></td>
+    // the name and the value are stored in attributes of the input field
+    // e.g:
+    //    <td bgcolor="#EDEFEF"><div class="item_1">Indoor Temperature</div></td>
+    //    <td bgcolor="#EDEFEF"><input name="inTemp" disabled="disabled" type="text" class="item_2" style="WIDTH: 80px" value="21.5" maxlength="5" /></td>
     $ambient_row = $ambient_xpath->query('//input');
 
     foreach ($ambient_row as $value) {
@@ -127,13 +136,22 @@ if ($mqtt->connect()) {
 
 	// indoor temperature
 	$arr = array ('idx' => $ambient['inTemp']['idx'], 'nvalue' => 0, 'svalue' => $ambient['inTemp']['value']);
+	$arr2 = array ('value' => $ambient['inTemp']['value']);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
+	// if the value is nonsense, do not publish
+	if (!str_contains($ambient['inTemp']['value'], "-.-") && $ambient['inTemp']['value'] > 0 && $ambient['inTemp']['value'] < 40) {
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+		$mqtt->publish("rpi1/indoortemp",json_encode($arr2),0);
+        }
 
 	// outdoor temperature
 	$arr = array ('idx' => $ambient['outTemp']['idx'], 'nvalue' => 0, 'svalue' => $ambient['outTemp']['value']);
+	$arr2 = array ('value' => $ambient['outTemp']['value']);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
+	if (!str_contains($ambient['outTemp']['value'], "-.-") && $ambient['outTemp']['value'] > -20 &&  $ambient['outTemp']['value'] < 60) {
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+		$mqtt->publish("rpi1/outdoortemp",json_encode($arr2),0);
+        }
 
 	// Humidity
 	//json.htm?type=command&param=udevice&idx=IDX&nvalue=HUM&svalue=HUM_STAT
@@ -160,11 +178,14 @@ if ($mqtt->connect()) {
 		$s = 0;
 	}
 
-	// $arr = array ('idx' => $ambient['inHumi']['idx'], 'nvalue' => 'Humidity: ' . $val . '%', 'svalue' => $s);
 	$arr = array ('idx' => $ambient['inHumi']['idx'], 'nvalue' => (int)$val, 'svalue' => strval($s));
+	$arr2 = array ('value' => (int)$val);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
-
+	if ($val > 10 &&  $val < 100) {	
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+		$mqtt->publish("rpi1/indoorhumidity",json_encode($arr2),0);
+	}
+	
 	$val = $ambient['outHumi']['value'];
 	// outdoor humidity
 	if ($val < 30) {
@@ -179,9 +200,13 @@ if ($mqtt->connect()) {
 
 	// $arr = array ('idx' => $ambient['outHumi']['idx'], 'nvalue' => 'Humidity: ' . $val . '%', 'svalue' => $s);
 	$arr = array ('idx' => $ambient['outHumi']['idx'], 'nvalue' => (int)$val, 'svalue' => strval($s));
+	$arr2 = array ('value' => (int)$val);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
-
+	if ($val > 10 &&  $val < 100) {
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+		$mqtt->publish("rpi1/outdoorhumidity",json_encode($arr2),0);
+	}
+	
 	//Barometer
 	//json.htm?type=command&param=udevice&idx=IDX&nvalue=0&svalue=BAR;BAR_FOR
 	//The above sets the parameters for a Barometer device from hardware type 'General'
@@ -197,16 +222,24 @@ if ($mqtt->connect()) {
 	// 5 = Unknown
 	// 6 = Cloudy/Rain
 	$arr = array ('idx' => $ambient['RelPress']['idx'], 'nvalue' => 0, 'svalue' => $ambient['RelPress']['value'] . ';5');
+	$arr2 = array ('value' => $ambient['RelPress']['value']);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
+	if (!str_contains($ambient['RelPress']['value'], "-.-") && $ambient['RelPress']['value'] > 600 &&  $ambient['RelPress']['value'] < 1400) {
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+		$mqtt->publish("rpi1/barometer",json_encode($arr2),0);
+        }
 
 	//Rain
 	//json.htm?type=command&param=udevice&idx=IDX&nvalue=0&svalue=RAINRATE;RAINCOUNTER
 	//RAINRATE = amount of rain in last hour
 	//RAINCOUNTER = continues counter of fallen Rain in mm
 	$arr = array ('idx' => $ambient['rainofhourly']['idx'], 'nvalue' => 0, 'svalue' => $ambient['rainofhourly']['value'] . ';' .  $ambient['rainofyearly']['value']);
+	$arr2 = array ('value' => $ambient['rainofhourly']['value']);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
+	if (!str_contains($ambient['rainofhourly']['value'], "-.-")) {
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+		$mqtt->publish("rpi1/rain",json_encode($arr2),0);
+        }
 
 	//Wind
 	//json.htm?type=command&param=udevice&idx=IDX&nvalue=0&svalue=WB;WD;WS;WG;22;24
@@ -217,7 +250,7 @@ if ($mqtt->connect()) {
 	//22 = Temperature
 	//24 = Temperature Windchill
 
-	// To convert from km/h to m/s multiply by 0.277778
+	// To convert from km/h to m/s multiply by 0.277778, but system is in km/h now
 
 	// First build the datastring
 	$data = $ambient['windir']['value'];
@@ -243,15 +276,23 @@ if ($mqtt->connect()) {
 	// COUNTER = Float (in example: 2.1) with current UV reading.
 	// Don't loose the ";0" at the end - without it database may corrupt.
 	$arr = array ('idx' => $ambient['uvi']['idx'], 'nvalue' => 0, 'svalue' => $ambient['uvi']['value'] . ';0');
+	$arr2 = array ('value' => $ambient['uvi']['value']);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
+	if (!str_contains($ambient['uv']['value'], "--")) {
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+		$mqtt->publish("rpi1/uv",json_encode($arr2),0);
+        }
 
 	//Lux
 	//json.htm?type=command&param=udevice&idx=IDX&svalue=VALUE
 	//VALUE = value of luminosity in Lux
 	$arr = array ('idx' => $ambient['solarrad']['idx'], 'svalue' => $ambient['solarrad']['value']);
+	$arr2 = array ('value' => $ambient['solarrad']['value']);
 	// echo json_encode($arr) . "\n";
-	$mqtt->publish("domoticz/in",json_encode($arr),0);
+	if (!str_contains($ambient['solarrad']['value'], "-.-")) {
+		$mqtt->publish("domoticz/in",json_encode($arr),0);
+        	$mqtt->publish("rpi1/lux",json_encode($arr2),0);
+        }
 
     $mqtt->close();
     } else {
