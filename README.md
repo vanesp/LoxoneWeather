@@ -21,11 +21,11 @@ It was found that the Observerip module has difficulty when multiple clients acc
 ## Loxone
 Loxone is set up with virtual inputs and the correct scrape commands to retrieve the values from the scraped html page.
 
-![Virtual set-up](https://github.com/vanesp/LoxoneWeather/blob/master/virtual_weather.png)
+![Virtual set-up](virtual_weather.png)
 
 ## Weather page
 
-![Weather page](https://github.com/vanesp/LoxoneWeather/blob/master/weather.png)
+![Weather page](weather.png)
 
 ### Wind direction
 Command recognition: name="windir"\ivalue="\i\v  
