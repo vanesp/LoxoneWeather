@@ -28,52 +28,64 @@ Loxone is set up with virtual inputs and the correct scrape commands to retrieve
 ![Weather page](weather.png)
 
 ### Wind direction
+```
 Command recognition: name="windir"\ivalue="\i\v  
 Unit: <v.1>°
-
+```
 ### Wind speed
+```
 Command recognition: name="avgwind"\ivalue="\i\v  
 Unit: <v.1> km/h
-
+```
 ### Wind gusts
+```
 Command recognition: name="gustspeed"\ivalue="\i\v  
 Unit: <v.1> km/h
-
+```
 ### Temperature Outside
+```
 Command recognition: name="outTemp"\ivalue="\i\v  
 Unit: <v.1>°
-
+```
 ### Temperature Inside
+```
 Command recognition: name="inTemp"\ivalue="\i\v  
 Unit: <v.1>°
-
+```
 ### Humidity Outside
+```
 Command recognition: name="outHumi"\ivalue="\i\v  
 Unit: <v.1> %
-
+```
 ### Humidity Inside
+```
 Command recognition: name="inHumi"\ivalue="\i\v  
 Unit: <v.1> %
-
+```
 ### Solar Radiation
+```
 Command recognition: name="solarrad"\ivalue="\i\v  
 Unit: <v.1> lx
+```
 
 ### Absolute Pressure
+```
 Command recognition: name="AbsPres"\ivalue="\i\v  
 Unit: <v.1> Pa
-
+```
 ### Relative Pressure 
+```
 Command recognition: name="RelPres"\ivalue="\i\v  
 Unit: <v.1> Pa
-
+```
 ### Rain values 
+```
 Hour: Command recognition: name="rainofhourly"\ivalue="\i\v  
 Day: Command recognition: name="rainofdaily"\ivalue="\i\v  
 Week: Command recognition: name="rainofweekly"\ivalue="\i\v  
 Month: Command recognition: name="rainofmonthly"\ivalue="\i\v  
 Year: Command recognition: name="rainofyearly"\ivalue="\i\v  
 Unit: <v.1> mm
-
+```
 
 
