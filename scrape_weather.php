@@ -136,19 +136,21 @@ if ($mqtt->connect()) {
 
 	// indoor temperature
 	$arr = array ('idx' => $ambient['inTemp']['idx'], 'nvalue' => 0, 'svalue' => $ambient['inTemp']['value']);
-	$arr2 = array ('value' => $ambient['inTemp']['value']);
+	$temp_value = floatval($ambient['inTemp']['value']);
+	$arr2 = array ('value' => $temp_value);
 	// echo json_encode($arr) . "\n";
 	// if the value is nonsense, do not publish
-	if (!str_contains($ambient['inTemp']['value'], "-.-") && $ambient['inTemp']['value'] > 0 && $ambient['inTemp']['value'] < 40) {
+	if (!str_contains($ambient['inTemp']['value'], "-.-") && $temp_value > 0 && $temp_value < 40) {
 		$mqtt->publish("domoticz/in",json_encode($arr),0);
 		$mqtt->publish("rpi1/indoortemp",json_encode($arr2),0);
         }
 
 	// outdoor temperature
 	$arr = array ('idx' => $ambient['outTemp']['idx'], 'nvalue' => 0, 'svalue' => $ambient['outTemp']['value']);
-	$arr2 = array ('value' => $ambient['outTemp']['value']);
+	$temp_value = floatval($ambient['outTemp']['value']);	
+	$arr2 = array ('value' => $temp_value);
 	// echo json_encode($arr) . "\n";
-	if (!str_contains($ambient['outTemp']['value'], "-.-") && $ambient['outTemp']['value'] > -20 &&  $ambient['outTemp']['value'] < 60) {
+	if (!str_contains($ambient['outTemp']['value'], "-.-") && $temp_value > -20 &&  $temp_value < 60) {
 		$mqtt->publish("domoticz/in",json_encode($arr),0);
 		$mqtt->publish("rpi1/outdoortemp",json_encode($arr2),0);
         }
@@ -167,7 +169,7 @@ if ($mqtt->connect()) {
 	//3=Wet >70
 
 	// indoor humidity
-	$val = $ambient['inHumi']['value'];
+	$val = intval($ambient['inHumi']['value']);
 	if ($val < 30) {
 		$s = 2;
 	} else if ($val > 70) {
@@ -186,7 +188,7 @@ if ($mqtt->connect()) {
 		$mqtt->publish("rpi1/indoorhumidity",json_encode($arr2),0);
 	}
 	
-	$val = $ambient['outHumi']['value'];
+	$val = intval($ambient['outHumi']['value']);
 	// outdoor humidity
 	if ($val < 30) {
 		$s = 2;
@@ -222,9 +224,10 @@ if ($mqtt->connect()) {
 	// 5 = Unknown
 	// 6 = Cloudy/Rain
 	$arr = array ('idx' => $ambient['RelPress']['idx'], 'nvalue' => 0, 'svalue' => $ambient['RelPress']['value'] . ';5');
-	$arr2 = array ('value' => $ambient['RelPress']['value']);
+	$val = floatval($ambient['RelPress']['value']);
+	$arr2 = array ('value' => $val);
 	// echo json_encode($arr) . "\n";
-	if (!str_contains($ambient['RelPress']['value'], "-.-") && $ambient['RelPress']['value'] > 600 &&  $ambient['RelPress']['value'] < 1400) {
+	if (!str_contains($ambient['RelPress']['value'], "-.-") && $val > 600 &&  $val < 1400) {
 		$mqtt->publish("domoticz/in",json_encode($arr),0);
 		$mqtt->publish("rpi1/barometer",json_encode($arr2),0);
         }
@@ -234,7 +237,8 @@ if ($mqtt->connect()) {
 	//RAINRATE = amount of rain in last hour
 	//RAINCOUNTER = continues counter of fallen Rain in mm
 	$arr = array ('idx' => $ambient['rainofhourly']['idx'], 'nvalue' => 0, 'svalue' => $ambient['rainofhourly']['value'] . ';' .  $ambient['rainofyearly']['value']);
-	$arr2 = array ('value' => $ambient['rainofhourly']['value']);
+	$val = floatval($ambient['rainofhourly']['value']);
+	$arr2 = array ('value' => $val);
 	// echo json_encode($arr) . "\n";
 	if (!str_contains($ambient['rainofhourly']['value'], "-.-")) {
 		$mqtt->publish("domoticz/in",json_encode($arr),0);
@@ -254,18 +258,18 @@ if ($mqtt->connect()) {
 
 	// First build the datastring
 	$data = $ambient['windir']['value'];
-	$data = $data . ';' . degToCompass($ambient['windir']['value']);
-	$data = $data . ';' . $ambient['avgwind']['value'] * 10 * 0.2777778;
-	$data = $data . ';' . $ambient['gustspeed']['value'] * 10 * 0.2777778;
-	$data = $data . ';' . $ambient['outTemp']['value'];
+	$data = $data . ';' . degToCompass(intval($ambient['windir']['value']));
+	$data = $data . ';' . floatval($ambient['avgwind']['value']) * 10 * 0.2777778;
+	$data = $data . ';' . floatval($ambient['gustspeed']['value']) * 10 * 0.2777778;
+	$data = $data . ';' . floatval($ambient['outTemp']['value']);
 
 	// T_{\rm wc}=13.12 + 0.6215 T_{\rm a}-11.37 V^{+0.16} + 0.3965 T_{\rm a} V^{+0.16}\,\!
 	//where
 	//T_{\rm wc}\,\! is the wind chill index, based on the Celsius temperature scale,
 	//T_{\rm a}\,\! is the air temperature in degrees Celsius (°C), and
 	//V\,\! is the wind speed at 10 metres (standard anemometer height), in kilometres per hour (km/h).[9]
-	$v = $ambient['avgwind']['value']; // our Ambient Weather station returns windspeed in km/h
-	$twc = 13.12 + 0.6215 * $ambient['outTemp']['value'] - (11.37 * pow ($v, 0.16)) + (0.3965 * $ambient['outTemp']['value'] * pow ($v, 0.16));
+	$v = floatval($ambient['avgwind']['value']); // our Ambient Weather station returns windspeed in km/h
+	$twc = 13.12 + 0.6215 * floatval($ambient['outTemp']['value']) - (11.37 * pow ($v, 0.16)) + (0.3965 * floatval($ambient['outTemp']['value']) * pow ($v, 0.16));
 	$data = $data . ';' . $twc;
 	$arr = array ('idx' => $ambient['avgwind']['idx'], 'nvalue' => 0, 'svalue' => $data);
 	// echo json_encode($arr) . "\n";
@@ -276,9 +280,10 @@ if ($mqtt->connect()) {
 	// COUNTER = Float (in example: 2.1) with current UV reading.
 	// Don't loose the ";0" at the end - without it database may corrupt.
 	$arr = array ('idx' => $ambient['uvi']['idx'], 'nvalue' => 0, 'svalue' => $ambient['uvi']['value'] . ';0');
-	$arr2 = array ('value' => $ambient['uvi']['value']);
+	$val = floatval($ambient['uvi']['value']);
+	$arr2 = array ('value' => $val);
 	// echo json_encode($arr) . "\n";
-	if (!str_contains($ambient['uv']['value'], "--")) {
+	if (!str_contains($ambient['uvi']['value'], "--")) {
 		$mqtt->publish("domoticz/in",json_encode($arr),0);
 		$mqtt->publish("rpi1/uv",json_encode($arr2),0);
         }
@@ -287,7 +292,14 @@ if ($mqtt->connect()) {
 	//json.htm?type=command&param=udevice&idx=IDX&svalue=VALUE
 	//VALUE = value of luminosity in Lux
 	$arr = array ('idx' => $ambient['solarrad']['idx'], 'svalue' => $ambient['solarrad']['value']);
-	$arr2 = array ('value' => $ambient['solarrad']['value']);
+	// PvE: 08-06-2026 we changed the old Boat sensor WH24 for the new WS96 array...
+	// it looks like the lux values used to be between 0 and ~30.000... now I measure up to 120.000... so we'll divide by 4
+	// or multiply by 0.3
+	// to ensure Loxone does not go haywire
+	// but we set this up in the config page of the receiver device http://192.168.2.22/correction.htm
+	$val = floatval($ambient['solarrad']['value']);
+	$arr2 = array ('value' => $val);
+
 	// echo json_encode($arr) . "\n";
 	if (!str_contains($ambient['solarrad']['value'], "-.-")) {
 		$mqtt->publish("domoticz/in",json_encode($arr),0);
@@ -301,7 +313,7 @@ if ($mqtt->connect()) {
 
 }
 
-function degToCompass($num) {
+function degToCompass(int $num) {
 	// from a degree value on the compass rose, create the textual representation
     if ($num < 0) $num += 360;
     if ($num >= 360) $num -= 360;
